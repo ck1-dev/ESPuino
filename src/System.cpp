@@ -207,6 +207,9 @@ void System_DeepSleepManager(void) {
         SdCard_Exit();
 
         Serial.flush();
+
+        delay(3000);
+
         // switch off power
         digitalWrite(POWER, LOW);
         delay(200);

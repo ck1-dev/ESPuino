@@ -83,7 +83,7 @@
     #define WAKEUP_BUTTON                   99 //ROTARYENCODER_BUTTON // Defines the button that is used to wake up ESPuino from deepsleep.
 
     // (optional) Power-control
-    #define POWER                           99//5           // GPIO used to drive transistor-circuit, that switches off peripheral devices while ESP32-deepsleep
+    #define POWER                           5           // GPIO used to drive transistor-circuit, that switches off peripheral devices while ESP32-deepsleep
 
     // (optional) Neopixel
     #define LED_PIN                         0          // GPIO for Neopixel-signaling
