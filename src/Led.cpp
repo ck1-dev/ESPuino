@@ -33,6 +33,9 @@
 
     static void Led_Task(void *parameter);
     static uint8_t Led_Address(uint8_t number);
+#elif defined(SIMPLE_STATUS_LED)
+    static void Led_Task(void *parameter);
+    static bool Led_Pause = false; // Used to pause Neopixel-signalisation (while NVS-writes as this leads to exceptions; don't know why)
 #endif
 
 void Led_Init(void) {
@@ -61,6 +64,18 @@ void Led_Init(void) {
             Log_Println((char *) FPSTR(wroteNmBrightnessToNvs), LOGLEVEL_ERROR);
         }
 
+        xTaskCreatePinnedToCore(
+            Led_Task,   /* Function to implement the task */
+            "Led_Task", /* Name of the task */
+            2000,       /* Stack size in words */
+            NULL,       /* Task input parameter */
+            1,          /* Priority of the task */
+            NULL,       /* Task handle. */
+            0           /* Core where the task should run */
+        );
+    #elif defined(SIMPLE_STATUS_LED)
+        pinMode(LED_PIN, OUTPUT);
+        Led_SetSimpleLedStatusInactive();
         xTaskCreatePinnedToCore(
             Led_Task,   /* Function to implement the task */
             "Led_Task", /* Name of the task */
@@ -640,5 +655,65 @@ static void Led_Task(void *parameter) {
             esp_task_wdt_reset();
         }
         vTaskDelete(NULL);
+    
+    // ################################################################################################################
+    
+    #elif defined(SIMPLE_STATUS_LED)
+        static bool ledBusyShown = false;
+        for (;;) {
+            if (Led_Pause) { // Workaround to prevent exceptions while NVS-writes take place
+                vTaskDelay(portTICK_RATE_MS * 10);
+                continue;
+            }
+            /*
+            snprintf(Log_Buffer, Log_BufferLength, "SIMPLE_STATUS_LED -- playMode: %u", gPlayProperties.playMode);
+            Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
+            snprintf(Log_Buffer, Log_BufferLength, "SIMPLE_STATUS_LED -- pausePlay: %u", gPlayProperties.pausePlay);
+            Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
+            */
+
+            switch (gPlayProperties.playMode) {
+                case NO_PLAYLIST: // If no playlist is active (idle)
+                    // simple led mode "inactive"
+                    Led_SetSimpleLedStatusInactive();
+                    break;
+
+                default: // If playlist is active (doesn't matter which type)
+                    if (gPlayProperties.pausePlay == true) {
+                        // simple led mode "inactive"
+                        Led_SetSimpleLedStatusInactive();
+                    } else {
+                        // simple led mode "active"
+                        Led_SetSimpleLedStatusActive();
+                    }
+                    //vTaskDelay(portTICK_RATE_MS * 5);
+            }
+            vTaskDelay(portTICK_RATE_MS * 10);
+            esp_task_wdt_reset();
+            //vTaskDelay(portTICK_RATE_MS * 500); // for debugging
+        }
+        vTaskDelete(NULL);
+    #endif
+}
+
+void Led_SetSimpleLedStatusActive() {
+    #ifdef SIMPLE_STATUS_LED
+    //Log_Println((char *) FPSTR("Led_SetSimpleLedStatusActive()"), LOGLEVEL_DEBUG);
+    digitalWrite(LED_PIN, HIGH);
+    #endif
+}
+
+void Led_SetSimpleLedStatusInactive() {
+    #ifdef SIMPLE_STATUS_LED
+    static uint8_t simpleLedBlinkCounter = 0;
+    static uint8_t nextOutputVal = LOW;
+    //Log_Println((char *) FPSTR("Led_SetSimpleLedStatusInactive()"), LOGLEVEL_DEBUG);
+    if (simpleLedBlinkCounter == 60) {
+        digitalWrite(LED_PIN, nextOutputVal);
+        nextOutputVal = nextOutputVal == LOW ? HIGH : LOW;
+        simpleLedBlinkCounter = 0;
+    } else {
+        simpleLedBlinkCounter++;
+    }
     #endif
 }

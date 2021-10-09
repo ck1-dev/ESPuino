@@ -30,6 +30,7 @@
     //#define MQTT_ENABLE                     // Make sure to configure mqtt-server and (optionally) username+pwd
     //#define FTP_ENABLE                      // Enables FTP-server; DON'T FORGET TO ACTIVATE AFTER BOOT BY PRESSING PAUSE + NEXT-BUTTONS (IN PARALLEL)!
     //#define NEOPIXEL_ENABLE                 // Don't forget configuration of NUM_LEDS if enabled
+    #define SIMPLE_STATUS_LED               // can only be used instead of Neopixel
     //#define NEOPIXEL_REVERSE_ROTATION     // Some Neopixels are adressed/soldered counter-clockwise. This can be configured here.
     #define LANGUAGE DE                     // DE = deutsch; EN = english
     //#define STATIC_IP_ENABLE              // Enables static IP-configuration (change static ip-section accordingly)
