@@ -223,6 +223,9 @@ void setup() {
         Rfid_Init();
     #endif
     RotaryEncoder_Init();
+
+    //gPrefsSettings.putUInt("enableWifi", 1);  // force wifi enable (added by ck @ 21.12.2022)
+
     Wlan_Init();
     Bluetooth_Init();
 

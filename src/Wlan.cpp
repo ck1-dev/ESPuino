@@ -31,6 +31,7 @@ uint32_t lastPrintRssiTimestamp = 0;
 
 void Wlan_Init(void) {
     wifiEnabled = getWifiEnableStatusFromNVS();
+    wifiEnabled = 1; // [CK 22.01.2023] force wifi to be enabled
 }
 
 void Wlan_Cyclic(void) {
