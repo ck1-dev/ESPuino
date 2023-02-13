@@ -12,6 +12,11 @@
 #include "Bluetooth.h"
 #include "Port.h"
 
+// adding some lines required for LED module without using Neopixel
+#include <FastLED.h>
+constexpr uint8_t Led_IdleDotDistance = NUM_LEDS / NUM_LEDS_IDLE_DOTS;
+extern t_button gButtons[7];    // next + prev + pplay + rotEnc + button4 + button5 + dummy-button
+
 #ifdef NEOPIXEL_ENABLE
 	#include <FastLED.h>
 
@@ -46,6 +51,9 @@
 
 	static void Led_Task(void *parameter);
 	static uint8_t Led_Address(uint8_t number);
+#elif defined(SIMPLE_STATUS_LED)
+    static void Led_Task(void *parameter);
+    static bool Led_Pause = false; // Used to pause Neopixel-signalisation (while NVS-writes as this leads to exceptions; don't know why)
 #endif
 
 void Led_Init(void) {
@@ -83,7 +91,19 @@ void Led_Init(void) {
 			NULL,       /* Task handle. */
 			1           /* Core where the task should run */
 		);
-	#endif
+	#elif defined(SIMPLE_STATUS_LED)
+        pinMode(LED_PIN, OUTPUT);
+        Led_SetSimpleLedStatusInactive();
+        xTaskCreatePinnedToCore(
+            Led_Task,   /* Function to implement the task */
+            "Led_Task", /* Name of the task */
+            1512,       /* Stack size in words */
+            NULL,       /* Task input parameter */
+            1,          /* Priority of the task */
+            NULL,       /* Task handle. */
+            1           /* Core where the task should run */
+        );
+  #endif
 }
 
 void Led_Exit(void) {
@@ -191,6 +211,7 @@ CRGB Led_DimColor(CRGB color, uint8_t brightness) {
 	const uint8_t factor = uint16_t(brightness * __UINT8_MAX__) / DIMMABLE_STATES;
 	return color.nscale8(factor);
 }
+
 
 void Led_DrawIdleDots(CRGB* leds, uint8_t offset, CRGB::HTMLColorCode color) {
 	for (uint8_t i=0; i<NUM_LEDS_IDLE_DOTS; i++){
@@ -515,7 +536,7 @@ static void Led_Task(void *parameter) {
 						LED_INDICATOR_CLEAR(LedIndicatorType::Voltage);
 						// Single-LED: indicates voltage coloured between gradient green (high) => red (low)
 						// Multi-LED: number of LEDs indicates voltage-level with having green >= 60% ; orange < 60% + >= 30% ; red < 30%
-						float batteryLevel = Battery_EstimateLevel();
+						float batteryLevel = 1;//Battery_EstimateLevel();
 						if (batteryLevel < 0) { // If voltage is too low or no battery is connected
 							LED_INDICATOR_SET(LedIndicatorType::Error);
 							break;
@@ -854,5 +875,62 @@ static void Led_Task(void *parameter) {
 			vTaskDelay(portTICK_RATE_MS * taskDelay);
 		}
 		vTaskDelete(NULL);
+	#elif defined(SIMPLE_STATUS_LED)
+        static bool ledBusyShown = false;
+        for (;;) {
+            if (Led_Pause) { // Workaround to prevent exceptions while NVS-writes take place
+                vTaskDelay(portTICK_RATE_MS * 10);
+                continue;
+            }
+            /*
+            snprintf(Log_Buffer, Log_BufferLength, "SIMPLE_STATUS_LED -- playMode: %u", gPlayProperties.playMode);
+            Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
+            snprintf(Log_Buffer, Log_BufferLength, "SIMPLE_STATUS_LED -- pausePlay: %u", gPlayProperties.pausePlay);
+            Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
+            */
+
+            switch (gPlayProperties.playMode) {
+                case NO_PLAYLIST: // If no playlist is active (idle)
+                    // simple led mode "inactive"
+                    Led_SetSimpleLedStatusInactive();
+                    break;
+
+                default: // If playlist is active (doesn't matter which type)
+                    if (gPlayProperties.pausePlay == true) {
+                        // simple led mode "inactive"
+                        Led_SetSimpleLedStatusInactive();
+                    } else {
+                        // simple led mode "active"
+                        Led_SetSimpleLedStatusActive();
+                    }
+                    //vTaskDelay(portTICK_RATE_MS * 5);
+            }
+            vTaskDelay(portTICK_RATE_MS * 10);
+            esp_task_wdt_reset();
+            //vTaskDelay(portTICK_RATE_MS * 500); // for debugging
+        }
+        vTaskDelete(NULL);
 	#endif
+}
+
+void Led_SetSimpleLedStatusActive() {
+    #ifdef SIMPLE_STATUS_LED
+    //Log_Println((char *) FPSTR("Led_SetSimpleLedStatusActive()"), LOGLEVEL_DEBUG);
+    digitalWrite(LED_PIN, HIGH);
+    #endif
+}
+
+void Led_SetSimpleLedStatusInactive() {
+    #ifdef SIMPLE_STATUS_LED
+    static uint8_t simpleLedBlinkCounter = 0;
+    static uint8_t nextOutputVal = LOW;
+    //Log_Println((char *) FPSTR("Led_SetSimpleLedStatusInactive()"), LOGLEVEL_DEBUG);
+    if (simpleLedBlinkCounter == 60) {
+        digitalWrite(LED_PIN, nextOutputVal);
+        nextOutputVal = nextOutputVal == LOW ? HIGH : LOW;
+        simpleLedBlinkCounter = 0;
+    } else {
+        simpleLedBlinkCounter++;
+    }
+    #endif
 }

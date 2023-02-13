@@ -32,10 +32,10 @@
 
     // RFID (via SPI)
     #define RST_PIN                         99          // Not necessary but has to be set anyway; so let's use a dummy-number
-    #define RFID_CS                         21          // GPIO for chip select (RFID)
+    #define RFID_CS                         32          // GPIO for chip select (RFID)
     #define RFID_MOSI                       13          // GPIO for master out slave in (RFID)
-    #define RFID_MISO                       15          // GPIO for master in slave out (RFID)
-    #define RFID_SCK                        14          // GPIO for clock-signal (RFID)
+    #define RFID_MISO                       14          // GPIO for master in slave out (RFID)
+    #define RFID_SCK                        12          // GPIO for clock-signal (RFID)
 
     #ifdef RFID_READER_TYPE_PN5180
         #define RFID_BUSY                   33          // PN5180 BUSY PIN
@@ -59,45 +59,45 @@
     //#define GPIO_HP_EN                      113         // To enable amp for headphones (GPIO or port-channel)
 
     // Control-buttons (set to 99 to DISABLE; 0->39 for GPIO; 100->115 for port-expander)
-    #define NEXT_BUTTON                     33          // Button 0: GPIO to detect next
-    #define PREVIOUS_BUTTON                  2          // Button 1: GPIO to detect previous
-    #define PAUSEPLAY_BUTTON                36          // Button 2: GPIO to detect pause/play
+    #define NEXT_BUTTON                      103          // Button 0: GPIO to detect next
+    #define PREVIOUS_BUTTON                  102          // Button 1: GPIO to detect previous
+    #define PAUSEPLAY_BUTTON                101          // Button 2: GPIO to detect pause/play
     #define ROTARYENCODER_BUTTON            32          // (set to 99 to disable; 0->39 for GPIO; 100->115 for port-expander)
-    #define BUTTON_4                        99          // Button 4: unnamed optional button
-    #define BUTTON_5                        99          // Button 5: unnamed optional button
+    #define BUTTON_4                        104          // Button 4: unnamed optional button
+    #define BUTTON_5                        105          // Button 5: unnamed optional button
 
     //#define BUTTONS_LED                   114         // Powers the LEDs of the buttons. Make sure the current consumed by the LEDs can be handled by the used GPIO
 
     // Channels of port-expander can be read cyclic or interrupt-driven. It's strongly recommended to use the interrupt-way!
     // Infos: https://forum.espuino.de/t/einsatz-des-port-expanders-pca9555/306
     #ifdef PORT_EXPANDER_ENABLE
-        #define PE_INTERRUPT_PIN            99          // GPIO that is used to receive interrupts from port-expander
+        #define PE_INTERRUPT_PIN            33          // GPIO that is used to receive interrupts from port-expander
     #endif
 
     // I2C-configuration (necessary for RC522 [only via i2c - not spi!] or port-expander)
     #ifdef I2C_2_ENABLE
-        #define ext_IIC_CLK                 5           // i2c-SCL (clock)
-        #define ext_IIC_DATA                2           // i2c-SDA (data)
+        #define ext_IIC_CLK                 22           // i2c-SCL (clock)
+        #define ext_IIC_DATA                21           // i2c-SDA (data)
     #endif
 
     // Wake-up button => this also is the interrupt-pin if port-expander is enabled!
     // Please note: only RTC-GPIOs (0, 4, 12, 13, 14, 15, 25, 26, 27, 32, 33, 34, 35, 36, 39, 99) can be used! Set to 99 to DISABLE.
     // Please note #2: this button can be used as interrupt-pin for port-expander. If so, all pins connected to port-expander can wake up ESPuino.
-    #define WAKEUP_BUTTON                   ROTARYENCODER_BUTTON // Defines the button that is used to wake up ESPuino from deepsleep.
+    #define WAKEUP_BUTTON                   99 //ROTARYENCODER_BUTTON // Defines the button that is used to wake up ESPuino from deepsleep.
 
     // (optional) Power-control
-    #define POWER                           5           // GPIO used to drive transistor-circuit, that switches off peripheral devices while ESP32-deepsleep
+    #define POWER                           99//5           // GPIO used to drive transistor-circuit, that switches off peripheral devices while ESP32-deepsleep
     #ifdef POWER
         //#define INVERT_POWER                          // If enabled, use inverted logic for POWER circuit, that means peripherals are turned off by writing HIGH
     #endif
 
     // (optional) Neopixel
-    #define LED_PIN                         12          // GPIO for Neopixel-signaling
+    #define LED_PIN                         0          // GPIO for Neopixel-signaling
 
     // (optinal) Headphone-detection
     #ifdef HEADPHONE_ADJUST_ENABLE
         //#define DETECT_HP_ON_HIGH                       // Per default headphones are supposed to be connected if HT_DETECT is LOW. DETECT_HP_ON_HIGH will change this behaviour to HIGH.
-        #define HP_DETECT                   22          // GPIO that detects, if there's a plug in the headphone jack or not
+        #define HP_DETECT                   100          // GPIO that detects, if there's a plug in the headphone jack or not
     #endif
 
     // (optional) Monitoring of battery-voltage via ADC

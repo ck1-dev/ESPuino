@@ -45,3 +45,5 @@ uint8_t AudioPlayer_GetInitVolume(void);
 void AudioPlayer_SetInitVolume(uint8_t value);
 uint8_t AudioPlayer_GetInitVolume(void);
 void AudioPlayer_SetInitVolume(uint8_t value);
+void Led_SetSimpleLedStatusActive();
+void Led_SetSimpleLedStatusInactive();

@@ -37,6 +37,7 @@ char *_pwd;
 
 void Wlan_Init(void) {
 	wifiEnabled = getWifiEnableStatusFromNVS();
+	wifiEnabled = 1; // force wifi to be enabled
 }
 
 void Wlan_Cyclic(void) {
